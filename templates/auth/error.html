@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Authentication Error - Rummy Score Tracker{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+        <div class="text-center">
+            <div class="text-4xl mb-3">❌</div>
+            <h2 class="text-2xl font-bold text-gray-900">Authentication Error</h2>
+            <p class="text-gray-600 mt-2">{{ error }}</p>
+            
+            <div class="mt-6 space-y-3">
+                <a href="{{ base_path }}/auth/login" class="block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+                    Try Again
+                </a>
+                <a href="{{ base_path }}/" class="block bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md transition-colors">
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

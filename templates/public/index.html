@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Rummy Score Tracker - Track Your Card Games{% endblock %}
+
+{% block content %}
+<div class="space-y-12">
+    <!-- Hero Section -->
+    <div class="text-center space-y-6">
+        <h1 class="text-4xl sm:text-5xl font-bold text-gray-900">
+            🃏 Rummy Score Tracker
+        </h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+            The simple way to track scores for your in-person rummy games. 
+            No complex setup, just pure score tracking fun!
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{{ base_path }}/auth/login" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors">
+                Track Scores
+            </a>
+            <button @click="$dispatch('show-instructions')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-8 rounded-lg text-lg transition-colors">
+                How to Play Rummy
+            </button>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="text-3xl mb-4">📊</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Real-time Analytics</h3>
+            <p class="text-gray-600">See who's winning with live leaderboards and score tracking</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="text-3xl mb-4">📱</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Mobile Friendly</h3>
+            <p class="text-gray-600">Works perfectly on phones and tablets for easy game night scoring</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="text-3xl mb-4">🎯</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Standard Rules</h3>
+            <p class="text-gray-600">Uses classic rummy scoring: 100, 150, and 201 point games</p>
+        </div>
+    </div>
+
+    <!-- Instructions Modal -->
+    <div x-show="showInstructions" x-data="{ showInstructions: false }" 
+         @show-instructions.window="showInstructions = true"
+         @click.away="showInstructions = false"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" x-show="showInstructions">
+        
+        <div class="bg-white rounded-lg max-w-2xl max-h-[80vh] overflow-y-auto p-6" x-show="showInstructions">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-900">How to Play Rummy</h2>
+                <button @click="showInstructions = false" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-gray-700">
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Objective</h3>
+                    <p>Be the first player to reach the target score (100, 150, or 201 points) by having the lowest total score.</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Gameplay</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Each player is dealt 10 cards (7 cards if 4+ players)</li>
+                        <li>Remaining cards form the draw pile, top card starts discard pile</li>
+                        <li>On your turn: draw from draw pile or discard pile, then discard one card</li>
+                        <li>Try to form sets (3+ cards of same rank) and runs (3+ consecutive cards of same suit)</li>
+                        <li>When ready, you can "go out" by laying down all your cards</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Scoring</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Face cards (J, Q, K) = 10 points each</li>
+                        <li>Aces = 1 point (or 15 points in some variations)</li>
+                        <li>Number cards = Face value points</li>
+                        <li>Winner of round gets 0 points</li>
+                        <li>Other players sum points of cards left in hand</li>
+                        <li>First to reach the cutoff loses (others win)</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Strategy Tips</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Hold onto low-value cards</li>
+                        <li>Watch what opponents pick from discard pile</li>
+                        <li>Try to form both sets and runs for flexibility</li>
+                        <li>Don't wait too long to go out - points add up quickly!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

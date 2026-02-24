@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}New Game - Rummy Score Tracker{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">New Game Setup</h2>
+            <p class="text-gray-600 mt-1">Configure your rummy game</p>
+        </div>
+        
+        <form id="gameSetupForm" method="POST" action="{{ base_path }}/game/create" class="space-y-6">
+            <!-- Number of Players -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Players
+                </label>
+                <div class="flex flex-wrap gap-2">
+                    {% for i in range(2, 9) %}
+                    <label class="flex items-center">
+                        <input type="radio" name="num_players" value="{{ i }}" class="sr-only peer" required>
+                        <div class="w-12 h-12 rounded-lg border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:bg-blue-50 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                            <span class="text-sm font-medium">{{ i }}</span>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Score Cutoff -->
+            <div x-data="{ cutoffMode: '201', customValue: '' }">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Score Cutoff (Players Are Eliminated When They Reach This Score)
+                </label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <label class="flex-1">
+                        <input type="radio" name="score_cutoff_option" value="100" class="sr-only peer" @change="cutoffMode = '100'; document.getElementById('score_cutoff_field').value = 100" required>
+                        <div class="border-2 border-gray-300 rounded-lg p-3 text-center cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-gray-50 transition-colors">
+                            <div class="font-semibold">100</div>
+                            <div class="text-xs text-gray-500">Quick Game</div>
+                        </div>
+                    </label>
+                    <label class="flex-1">
+                        <input type="radio" name="score_cutoff_option" value="150" class="sr-only peer" @change="cutoffMode = '150'; document.getElementById('score_cutoff_field').value = 150">
+                        <div class="border-2 border-gray-300 rounded-lg p-3 text-center cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-gray-50 transition-colors">
+                            <div class="font-semibold">150</div>
+                            <div class="text-xs text-gray-500">Standard Game</div>
+                        </div>
+                    </label>
+                    <label class="flex-1">
+                        <input type="radio" name="score_cutoff_option" value="201" class="sr-only peer" checked @change="cutoffMode = '201'; document.getElementById('score_cutoff_field').value = 201">
+                        <div class="border-2 border-gray-300 rounded-lg p-3 text-center cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-gray-50 transition-colors">
+                            <div class="font-semibold">201</div>
+                            <div class="text-xs text-gray-500">Long Game</div>
+                        </div>
+                    </label>
+                    <label class="flex-1">
+                        <input type="radio" name="score_cutoff_option" value="custom" class="sr-only peer" @change="cutoffMode = 'custom'; $nextTick(() => $refs.customInput.focus())">
+                        <div class="border-2 border-gray-300 rounded-lg p-3 text-center cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-gray-50 transition-colors">
+                            <div class="font-semibold">Custom</div>
+                            <div class="text-xs text-gray-500">Any Score</div>
+                        </div>
+                    </label>
+                </div>
+                <div x-show="cutoffMode === 'custom'" x-transition class="mt-3">
+                    <input
+                        type="number"
+                        x-ref="customInput"
+                        x-model="customValue"
+                        @input="document.getElementById('score_cutoff_field').value = $event.target.value"
+                        min="1"
+                        placeholder="Enter score cutoff"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                </div>
+                <input type="hidden" name="score_cutoff" id="score_cutoff_field" value="201">
+            </div>
+
+            <!-- Player Names -->
+            <div id="playerNamesSection" class="hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    Player Names
+                </label>
+                <div id="playerNameFields" class="space-y-3">
+                </div>
+                <input type="hidden" name="player_names" id="player_names">
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            </div>
+
+            <!-- Submit Button -->
+            <button 
+                type="submit" 
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md transition-colors"
+            >
+                Create Game
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <a href="{{ base_path }}/game/dashboard" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function renderPlayerFields(numPlayers) {
+    const container = document.getElementById('playerNameFields');
+    const section = document.getElementById('playerNamesSection');
+    container.innerHTML = '';
+    section.classList.remove('hidden');
+
+    for (let i = 1; i <= numPlayers; i++) {
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-3';
+        div.innerHTML = `
+            <span class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold shrink-0">${i}</span>
+            <input
+                type="text"
+                data-player-name
+                placeholder="Player ${i}"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+            >
+        `;
+        container.appendChild(div);
+    }
+
+    // Focus the first field
+    const first = container.querySelector('input');
+    if (first) first.focus();
+}
+
+// Show individual fields when player count is selected
+document.querySelectorAll('input[name="num_players"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        renderPlayerFields(parseInt(this.value));
+    });
+});
+
+// Form validation and hidden field population
+document.getElementById('gameSetupForm').addEventListener('submit', function(e) {
+    const errorMessage = document.getElementById('errorMessage');
+    const inputs = document.querySelectorAll('[data-player-name]');
+    const names = Array.from(inputs).map(input => input.value.trim());
+
+    // Check for empty names
+    if (names.some(n => !n)) {
+        e.preventDefault();
+        errorMessage.textContent = 'Please enter a name for every player.';
+        errorMessage.classList.remove('hidden');
+        return;
+    }
+
+    // Check for duplicates
+    const uniqueNames = new Set(names.map(n => n.toLowerCase()));
+    if (uniqueNames.size !== names.length) {
+        e.preventDefault();
+        errorMessage.textContent = 'Player names must be unique.';
+        errorMessage.classList.remove('hidden');
+        return;
+    }
+
+    // Validate score cutoff
+    const cutoff = parseInt(document.getElementById('score_cutoff_field').value);
+    if (!cutoff || cutoff <= 0) {
+        e.preventDefault();
+        errorMessage.textContent = 'Please enter a valid score cutoff (must be a positive number).';
+        errorMessage.classList.remove('hidden');
+        return;
+    }
+
+    // Populate hidden field for the backend
+    document.getElementById('player_names').value = names.join(', ');
+    errorMessage.classList.add('hidden');
+});
+</script>
+{% endblock %}

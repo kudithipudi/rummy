@@ -1,0 +1,87 @@
+/* Custom CSS for Rummy Score Tracker */
+
+/* Custom animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .game-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .player-inputs {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Custom radio button styling */
+.radio-custom {
+    position: relative;
+    cursor: pointer;
+}
+
+.radio-custom input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.radio-custom .radio-visual {
+    transition: all 0.2s ease;
+}
+
+.radio-custom input[type="radio"]:checked + .radio-visual {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+/* Score input styling */
+.score-input {
+    transition: all 0.2s ease;
+}
+
+.score-input:focus {
+    transform: scale(1.02);
+}
+
+/* Card-like styling */
+.card-hover {
+    transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Leaderboard styling */
+.leaderboard-item {
+    transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+    transform: translateX(4px);
+}
+
+/* Progress bar animation */
+.progress-bar {
+    transition: width 0.5s ease-out;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+    .mobile-stack {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .mobile-full {
+        width: 100%;
+    }
+}
