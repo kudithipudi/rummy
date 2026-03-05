@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, UUID4
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, field_validator
+from typing import Optional, List, Union
 from datetime import datetime
+from uuid import UUID
 
 
 class UserBase(BaseModel):
@@ -12,9 +13,16 @@ class UserCreate(UserBase):
 
 
 class User(UserBase):
-    uuid: UUID4
+    uuid: UUID
     created_at: datetime
     is_active: bool = True
+
+    @field_validator('is_active', mode='before')
+    @classmethod
+    def parse_bool(cls, v):
+        if isinstance(v, int):
+            return bool(v)
+        return v
 
     class Config:
         from_attributes = True
@@ -25,12 +33,12 @@ class PlayerBase(BaseModel):
 
 
 class PlayerCreate(PlayerBase):
-    game_id: UUID4
+    game_id: UUID
 
 
 class Player(PlayerBase):
-    uuid: UUID4
-    game_id: UUID4
+    uuid: UUID
+    game_id: UUID
     total_score: int = 0
     created_at: datetime
 
@@ -47,13 +55,20 @@ class GameCreate(GameBase):
 
 
 class Game(GameBase):
-    uuid: UUID4
-    created_by: UUID4
+    uuid: UUID
+    created_by: UUID
     is_completed: bool = False
     is_cancelled: bool = False
-    winner_id: Optional[UUID4] = None
+    winner_id: Optional[UUID] = None
     created_at: datetime
     players: List[Player] = []
+
+    @field_validator('is_completed', 'is_cancelled', mode='before')
+    @classmethod
+    def parse_bool(cls, v):
+        if isinstance(v, int):
+            return bool(v)
+        return v
 
     class Config:
         from_attributes = True
@@ -64,14 +79,14 @@ class ScoreBase(BaseModel):
 
 
 class ScoreCreate(ScoreBase):
-    player_id: UUID4
-    round_id: UUID4
+    player_id: UUID
+    round_id: UUID
 
 
 class Score(ScoreBase):
-    uuid: UUID4
-    player_id: UUID4
-    round_id: UUID4
+    uuid: UUID
+    player_id: UUID
+    round_id: UUID
     cumulative_total: int
     created_at: datetime
 
@@ -84,12 +99,12 @@ class RoundBase(BaseModel):
 
 
 class RoundCreate(RoundBase):
-    game_id: UUID4
+    game_id: UUID
 
 
 class Round(RoundBase):
-    uuid: UUID4
-    game_id: UUID4
+    uuid: UUID
+    game_id: UUID
     scores: List[Score] = []
     created_at: datetime
 
@@ -98,7 +113,7 @@ class Round(RoundBase):
 
 
 class GameAnalytics(BaseModel):
-    game_id: UUID4
+    game_id: UUID
     current_round: int
     players: List[Player]
     leader: Optional[Player] = None

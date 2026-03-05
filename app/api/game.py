@@ -48,21 +48,29 @@ async def dashboard_page(request: Request):
     db = get_db()
 
     # Get all games created by this user
-    games_result = db.table("games").select("*").eq("created_by", str(current_user.uuid)).order("created_at", desc=True).execute()
+    games_data = db.execute_query(
+        "SELECT * FROM games WHERE created_by = ? ORDER BY created_at DESC",
+        (str(current_user.uuid),)
+    )
 
     active_games = []
     historical_games = []
 
-    for game_data in games_result.data:
+    for game_data in games_data:
         game = Game(**game_data)
 
         # Get players for this game
-        players_result = db.table("players").select("*").eq("game_id", str(game.uuid)).execute()
-        game.players = [Player(**p) for p in players_result.data]
+        players_data = db.execute_query(
+            "SELECT * FROM players WHERE game_id = ?", (str(game.uuid),)
+        )
+        game.players = [Player(**p) for p in players_data]
 
         # Get round count
-        rounds_result = db.table("rounds").select("round_number").eq("game_id", str(game.uuid)).order("round_number", desc=True).limit(1).execute()
-        round_count = rounds_result.data[0]["round_number"] if rounds_result.data else 0
+        last_round = db.execute_query(
+            "SELECT round_number FROM rounds WHERE game_id = ? ORDER BY round_number DESC LIMIT 1",
+            (str(game.uuid),), fetchone=True
+        )
+        round_count = last_round["round_number"] if last_round else 0
 
         game_info = {
             "game": game,
@@ -147,21 +155,24 @@ async def game_page(request: Request, game_id: uuid.UUID):
     game = await game_service.get_game(game_id)
     analytics = await game_service.get_game_analytics(game_id)
 
-    # Get all rounds with scores
     db = get_db()
 
-    rounds_result = db.table("rounds").select("*").eq("game_id", str(game_id)).order("round_number").execute()
-    rounds_data = rounds_result.data
+    # Get all rounds with scores
+    rounds_data = db.execute_query(
+        "SELECT * FROM rounds WHERE game_id = ? ORDER BY round_number",
+        (str(game_id),)
+    )
 
     rounds_with_scores = []
     for round_data in rounds_data:
-        scores_result = db.table("scores").select("*").eq("round_id", round_data["uuid"]).execute()
+        scores_data = db.execute_query(
+            "SELECT s.*, p.name as player_name FROM scores s JOIN players p ON s.player_id = p.uuid WHERE s.round_id = ?",
+            (round_data["uuid"],)
+        )
 
         round_scores = {}
-        for score_data in scores_result.data:
-            # Get player name
-            player_result = db.table("players").select("name").eq("uuid", score_data["player_id"]).single().execute()
-            round_scores[player_result.data["name"]] = score_data
+        for score_data in scores_data:
+            round_scores[score_data["player_name"]] = score_data
 
         rounds_with_scores.append({
             "round": round_data,

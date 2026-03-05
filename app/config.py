@@ -7,8 +7,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # Database
-    supabase_url: str
-    supabase_key: str
+    sqlite_db_path: str = "data/rummy.db"
 
     # Email Service
     mailjet_api_key: str

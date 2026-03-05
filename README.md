@@ -1,20 +1,20 @@
-# 🃏 Rummy Score Tracker
+# Rummy Score Tracker
 
-A simple, mobile-friendly web app for tracking scores in in-person rummy card games. Built with FastAPI, Tailwind CSS, and Supabase.
+A simple, mobile-friendly web app for tracking scores in in-person rummy card games. Built with FastAPI, Tailwind CSS, and SQLite.
 
 ## Features
 
-- 📱 **Mobile-Friendly Design** - Works perfectly on phones and tablets
-- 🎯 **Standard Rummy Rules** - Supports 100, 150, and 201 point games
-- 📊 **Real-time Analytics** - Live leaderboards and winning probability tracking
-- 🔐 **Simple Authentication** - Magic link email login (no passwords)
-- ⚡ **Fast & Lightweight** - Instant score updates and smooth animations
+- **Mobile-Friendly Design** - Works perfectly on phones and tablets
+- **Standard Rummy Rules** - Supports configurable point cutoffs (100, 150, 201, etc.)
+- **Real-time Analytics** - Live leaderboards and points-to-win tracking
+- **Simple Authentication** - Magic link email login (no passwords)
+- **Fast & Lightweight** - Local SQLite database with sub-millisecond queries
 
 ## Tech Stack
 
 - **Backend**: FastAPI + Python 3.12
 - **Frontend**: Tailwind CSS + Alpine.js + Jinja2 templates
-- **Database**: Supabase (PostgreSQL)
+- **Database**: SQLite (WAL mode)
 - **Authentication**: JWT tokens with magic link emails
 - **Email**: Mailjet for magic link delivery
 
@@ -35,34 +35,28 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Services
+### 2. Configure Environment
 
-Copy `.env.example` to `.env` and fill in your service credentials:
+Copy `.env.example` to `.env` and fill in your values:
 
 ```bash
 cp .env.example .env
 ```
 
-**Required Services:**
+**Required configuration:**
 
-1. **Supabase** - Create a free account at supabase.com
-   - Get your project URL and anon key
-   - Run the SQL from `database_schema.sql` in your Supabase SQL editor
-
-2. **Mailjet** - Create a free account at mailjet.com
+1. **Mailjet** - Create a free account at mailjet.com
    - Get your API key and secret
    - Verify your sender domain/email
 
-3. **Generate JWT Secret**:
+2. **Generate JWT Secret**:
    ```bash
    python -c "import secrets; print(secrets.token_urlsafe(32))"
    ```
 
-### 3. Database Setup
+3. **SQLite Database Path** - Defaults to `data/rummy.db` (created automatically on first run)
 
-Run the SQL schema in `database_schema.sql` in your Supabase SQL editor to create the required tables.
-
-### 4. Run the App
+### 3. Run the App
 
 ```bash
 python run.py
@@ -74,8 +68,8 @@ Visit `http://localhost:8000` to start tracking your rummy games!
 
 1. **Visit Homepage** - See rummy instructions and click "Track Scores"
 2. **Quick Login** - Enter your email, receive a magic link (no password needed)
-3. **Setup Game** - Select number of players, score cutoff (100/150/201), and enter player names
-4. **Track Scores** - Add round scores as you play, watch the leaderboard update in real-time
+3. **Setup Game** - Select number of players, score cutoff, and enter player names
+4. **Track Scores** - Add round scores as you play, watch the leaderboard update
 5. **Game Analytics** - See who's winning, points needed to win, and round-by-round history
 
 ## Game Rules Supported
@@ -84,7 +78,7 @@ Visit `http://localhost:8000` to start tracking your rummy games!
 - **Face cards**: 10 points each
 - **Number cards**: Face value
 - **Aces**: 1 point (can be customized to 15 points)
-- **Goal**: First player to reach the cutoff loses (others win)
+- **Elimination**: Players who reach the cutoff are eliminated; last player standing wins
 
 ## Project Structure
 
@@ -92,13 +86,35 @@ Visit `http://localhost:8000` to start tracking your rummy games!
 rummy/
 ├── app/
 │   ├── api/           # API routes (auth, game)
-│   ├── models/        # Database models and schemas
+│   ├── models/        # Database layer and Pydantic schemas
 │   ├── services/      # Business logic (auth, email, game)
 │   └── utils/         # Validation utilities
 ├── templates/         # Jinja2 HTML templates
-├── static/           # CSS, JS, images
-├── database_schema.sql    # Supabase setup
-└── requirements.txt       # Python dependencies
+├── static/            # CSS, JS, images
+├── data/              # SQLite database (created at runtime)
+├── scripts/           # Migration and backup scripts
+├── database_schema_sqlite.sql  # SQLite schema
+└── requirements.txt   # Python dependencies
+```
+
+## Database
+
+The app uses SQLite with WAL (Write-Ahead Logging) for better concurrency. The database is created automatically on first run at the path specified by `SQLITE_DB_PATH` in `.env`.
+
+### Schema
+
+Five tables: `users`, `games`, `players`, `rounds`, `scores` with foreign key constraints and cascade deletes.
+
+See `database_schema_sqlite.sql` for the full schema.
+
+### Backups
+
+```bash
+# Manual backup
+./scripts/backup.sh
+
+# Automated daily backup (add to crontab)
+0 4 * * * /path/to/rummy/scripts/backup.sh
 ```
 
 ## Development
@@ -108,50 +124,26 @@ rummy/
 - Follow the existing service layer pattern
 - Use Pydantic schemas for data validation
 - Add responsive design classes for mobile compatibility
-- Test with multiple screen sizes
 
 ### Database Changes
 
-1. Make changes in `database_schema.sql`
-2. Test in Supabase development environment
-3. Update Pydantic schemas in `app/models/schemas.py`
+1. Update `database_schema_sqlite.sql`
+2. Update Pydantic schemas in `app/models/schemas.py`
+3. Update queries in the relevant service files
 
 ### Deployment
 
-The app is designed for easy deployment:
-- Docker support (add Dockerfile for containerization)
-- Environment-based configuration
-- Production-ready security practices
+The app supports subdirectory deployment via the `BASE_PATH` environment variable (e.g., `/rummy`).
 
 ## Security Features
 
 - JWT tokens with 7-day expiration
 - Email validation with MX record verification
 - Disposable email detection
-- SQL injection protection via Supabase
+- SQL injection protection via parameterized queries
 - XSS protection via Jinja2 templating
 - CSRF protection via secure cookies
-
-## Mobile Optimization
-
-- Touch-friendly buttons and inputs
-- Responsive grid layouts
-- Swipeable score cards
-- Collapsible analytics panels
-- Fast loading times with minimal JavaScript
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Follow existing code patterns
-4. Test on multiple devices
-5. Submit a pull request
 
 ## License
 
 MIT License - feel free to use for personal or commercial projects.
-
----
-
-**Built with ❤️ for card game lovers who want simple, effective score tracking.**
