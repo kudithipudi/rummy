@@ -5,61 +5,62 @@
 {% block content %}
 <div x-data="gameTracker('{{ game.uuid }}')" x-init="init()">
     <!-- Game Header -->
-    <div class="bg-white rounded-lg shadow-md p-4 mb-6 border border-gray-200">
+    <div class="game-header mb-6 animate-in">
         <div class="flex justify-between items-center">
             <div>
-                <h2 class="text-xl font-bold text-gray-900">{{ game.score_cutoff }} Point Game</h2>
-                <p class="text-sm text-gray-600">
-                    Round <span x-text="currentRound"></span> •
+                <h2 class="text-xl font-bold" style="font-family: 'Playfair Display', serif; color: var(--cream);">{{ game.score_cutoff }} Point Game</h2>
+                <p class="text-sm mt-0.5" style="color: rgba(245,240,229,0.45);">
+                    Round <span x-text="currentRound"></span>
+                    <span class="mx-1.5" style="color: rgba(245,240,229,0.15);">&bull;</span>
                     {% if game.is_completed %}
-                        <span class="text-green-600 font-semibold">Game Completed!</span>
+                        <span style="color: var(--gold); font-weight: 600;">Game Complete</span>
                     {% elif game.is_cancelled %}
-                        <span class="text-red-600 font-semibold">Game Cancelled</span>
+                        <span style="color: #e74c3c; font-weight: 600;">Cancelled</span>
                     {% else %}
-                        <span class="text-blue-600">In Progress</span>
+                        <span style="color: #2ecc71;">In Progress</span>
                     {% endif %}
                 </p>
             </div>
-            <div class="text-right">
-                <a href="{{ base_path }}/auth/logout" class="text-sm text-gray-500 hover:text-gray-700">Logout</a>
-            </div>
+            <a href="{{ base_path }}/auth/logout" class="nav-link text-sm">Logout</a>
         </div>
     </div>
 
     <div class="grid lg:grid-cols-3 gap-6">
-        <!-- Main Content (2/3 width) -->
+        <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Leaderboard -->
-            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <span class="mr-2">🏆</span> Current Standings
+            <div class="glass-card p-5 sm:p-6 animate-in animate-in-delay-1">
+                <h3 class="text-base font-semibold mb-4 flex items-center gap-2" style="font-family: 'Playfair Display', serif; color: var(--gold);">
+                    <span>&#9824;</span> Current Standings
                 </h3>
-                <div class="space-y-3">
+                <div class="space-y-2">
                     <template x-for="(player, index) in sortedPlayers" :key="player.uuid">
-                        <div class="flex items-center justify-between p-3 rounded-lg"
+                        <div class="leader-row"
                              :class="{
-                                'bg-yellow-50 border border-yellow-200': index === 0 && !player.eliminated,
-                                'bg-red-50 border border-red-200 opacity-60': player.eliminated,
-                                'bg-gray-50 border border-gray-200': index > 0 && !player.eliminated
+                                'rank-1': index === 0 && !player.eliminated,
+                                'eliminated': player.eliminated,
+                                'default': index > 0 && !player.eliminated
                              }">
-                            <div class="flex items-center space-x-3">
-                                <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                            <div class="flex items-center gap-3">
+                                <div class="rank-badge"
                                      :class="{
-                                        'bg-yellow-500 text-white': index === 0 && !player.eliminated,
-                                        'bg-red-400 text-white': player.eliminated,
-                                        'bg-gray-300 text-gray-700': index > 0 && !player.eliminated
+                                        'gold': index === 0 && !player.eliminated,
+                                        'eliminated': player.eliminated,
+                                        'default': index > 0 && !player.eliminated
                                      }"
                                      x-text="index + 1">
                                 </div>
                                 <div>
-                                    <div class="font-medium" :class="player.eliminated ? 'text-red-700 line-through' : 'text-gray-900'" x-text="player.name"></div>
-                                    <div x-show="player.eliminated" class="text-sm text-red-600 font-medium">Eliminated</div>
-                                    <div x-show="!player.eliminated" class="text-sm text-gray-500" x-text="`Points remaining: ${player.pointsToWin}`"></div>
+                                    <div class="font-medium text-sm" :class="player.eliminated ? 'line-through' : ''"
+                                         :style="player.eliminated ? 'color: #e74c3c' : 'color: var(--cream)'"
+                                         x-text="player.name"></div>
+                                    <div x-show="player.eliminated" class="text-xs font-medium" style="color: #e74c3c;">Eliminated</div>
+                                    <div x-show="!player.eliminated" class="text-xs" style="color: rgba(245,240,229,0.35);" x-text="`${player.pointsToWin} pts remaining`"></div>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-xl font-bold" :class="player.eliminated ? 'text-red-700' : 'text-gray-900'" x-text="player.total_score"></div>
-                                <div class="text-xs text-gray-500">total points</div>
+                                <div class="score-big" :style="player.eliminated ? 'color: #e74c3c' : 'color: var(--cream)'" x-text="player.total_score"></div>
+                                <div class="text-xs" style="color: rgba(245,240,229,0.25);">total</div>
                             </div>
                         </div>
                     </template>
@@ -67,38 +68,36 @@
             </div>
 
             <!-- Add Round Scores -->
-            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200" x-show="!gameCompleted && !gameCancelled">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Add Round Scores</h3>
-                <form @submit.prevent="addRound" class="space-y-4">
+            <div class="glass-card p-5 sm:p-6 animate-in animate-in-delay-2" x-show="!gameCompleted && !gameCancelled">
+                <h3 class="text-base font-semibold mb-4" style="font-family: 'Playfair Display', serif; color: var(--cream);">Add Round Scores</h3>
+                <form @submit.prevent="addRound" class="space-y-5">
                     <!-- Step 1: Pick the round winner -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Who won this round?</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        <label class="block text-sm font-medium mb-2.5" style="color: rgba(245,240,229,0.5);">Who won this round?</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                             <template x-for="player in players" :key="'winner-' + player.uuid">
                                 <button
                                     type="button"
                                     @click="selectWinner(player.uuid)"
-                                    class="relative px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all"
-                                    :class="roundWinner === player.uuid
-                                        ? 'border-green-500 bg-green-50 text-green-800'
-                                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'"
+                                    class="winner-btn"
+                                    :class="roundWinner === player.uuid ? 'selected' : ''"
                                 >
                                     <span x-text="player.name"></span>
-                                    <span x-show="roundWinner === player.uuid" class="ml-1">&#10003;</span>
+                                    <span x-show="roundWinner === player.uuid" style="color: #2ecc71;"> &#10003;</span>
                                 </button>
                             </template>
                         </div>
                     </div>
 
-                    <!-- Step 2: Enter loser scores (shown after winner is picked) -->
+                    <!-- Step 2: Enter loser scores -->
                     <div x-show="roundWinner" x-transition class="space-y-3">
-                        <label class="block text-sm font-medium text-gray-700">Scores for other players</label>
+                        <label class="block text-sm font-medium" style="color: rgba(245,240,229,0.5);">Scores for other players</label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                             <template x-for="player in players" :key="'score-' + player.uuid">
                                 <div>
-                                    <label class="block text-xs text-gray-500 mb-1" x-text="player.name"></label>
+                                    <label class="block text-xs mb-1" style="color: rgba(245,240,229,0.35);" x-text="player.name"></label>
                                     <template x-if="roundWinner === player.uuid">
-                                        <div class="w-full px-2 py-1 bg-green-100 text-green-800 border border-green-300 rounded-md text-center font-semibold">0</div>
+                                        <div class="winner-zero">0</div>
                                     </template>
                                     <template x-if="roundWinner !== player.uuid">
                                         <input
@@ -106,7 +105,7 @@
                                             x-model="newScores[player.uuid]"
                                             min="0"
                                             max="200"
-                                            class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            class="input-field text-center"
                                             placeholder="0"
                                         >
                                     </template>
@@ -115,12 +114,11 @@
                         </div>
                     </div>
 
-                    <div id="roundErrorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                    </div>
+                    <div id="roundErrorMessage" class="hidden alert-error"></div>
 
                     <button
                         type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+                        class="btn-gold w-full py-2.5"
                         :disabled="isSubmitting || !roundWinner"
                     >
                         <span x-show="!isSubmitting">Add Round Scores</span>
@@ -130,109 +128,111 @@
             </div>
 
             <!-- Round History -->
-            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Round History</h3>
-                <div class="space-y-4 max-h-64 overflow-y-auto">
+            <div class="glass-card p-5 sm:p-6 animate-in animate-in-delay-3">
+                <h3 class="text-base font-semibold mb-4" style="font-family: 'Playfair Display', serif; color: var(--cream);">Round History</h3>
+                <div class="space-y-3 max-h-72 overflow-y-auto pr-1">
                     <template x-for="(roundData, index) in roundsHistory" :key="roundData.round.uuid">
-                        <div class="border-b border-gray-200 pb-3 last:border-b-0">
-                            <div class="font-medium text-gray-900 mb-2" x-text="`Round ${roundData.round.round_number}`"></div>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                        <div class="round-entry">
+                            <div class="font-medium text-sm mb-2" style="color: rgba(245,240,229,0.6);" x-text="`Round ${roundData.round.round_number}`"></div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                                 <template x-for="(scoreData, playerName) in roundData.scores" :key="scoreData.uuid">
-                                    <div class="flex justify-between bg-gray-50 p-2 rounded">
-                                        <span x-text="playerName"></span>
-                                        <span class="font-medium" x-text="`+${scoreData.points} (${scoreData.cumulative_total})`"></span>
+                                    <div class="round-score-chip">
+                                        <span style="color: rgba(245,240,229,0.6);" x-text="playerName"></span>
+                                        <span class="font-medium" style="color: var(--cream);" x-text="`+${scoreData.points} (${scoreData.cumulative_total})`"></span>
                                     </div>
                                 </template>
                             </div>
                         </div>
                     </template>
                     {% if rounds|length == 0 %}
-                    <div class="text-center text-gray-500 py-4">
-                        No rounds yet. Add the first round scores above!
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <p>No rounds yet. Add the first round scores above!</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar (1/3 width) -->
+        <!-- Sidebar -->
         <div class="space-y-6">
             <!-- Game Info -->
-            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Game Info</h3>
+            <div class="glass-card p-5 animate-in animate-in-delay-1">
+                <h3 class="text-sm font-semibold mb-4" style="font-family: 'Playfair Display', serif; color: var(--gold);">Game Info</h3>
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Score Cutoff:</span>
-                        <span class="font-medium">{{ game.score_cutoff }}</span>
+                        <span style="color: rgba(245,240,229,0.4);">Score Cutoff</span>
+                        <span class="font-medium" style="color: var(--cream);">{{ game.score_cutoff }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Players:</span>
-                        <span class="font-medium">{{ game.players|length }}</span>
+                        <span style="color: rgba(245,240,229,0.4);">Players</span>
+                        <span class="font-medium" style="color: var(--cream);">{{ game.players|length }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Current Round:</span>
-                        <span class="font-medium" x-text="currentRound">0</span>
+                        <span style="color: rgba(245,240,229,0.4);">Current Round</span>
+                        <span class="font-medium" style="color: var(--cream);" x-text="currentRound">0</span>
                     </div>
                     {% if game.is_completed %}
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Winner:</span>
-                        <span class="font-medium text-green-600">{{ game.players|selectattr('uuid', 'equalto', game.winner_id)|first|attr('name') }}</span>
+                        <span style="color: rgba(245,240,229,0.4);">Winner</span>
+                        <span class="font-medium" style="color: var(--gold);">{{ game.players|selectattr('uuid', 'equalto', game.winner_id)|first|attr('name') }}</span>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Analytics -->
-            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Analytics</h3>
+            <div class="glass-card p-5 animate-in animate-in-delay-2">
+                <h3 class="text-sm font-semibold mb-4" style="font-family: 'Playfair Display', serif; color: var(--gold);">
+                    <span>&#9830;</span> Progress
+                </h3>
                 <div class="space-y-3">
                     <template x-for="(data, index) in analytics.points_to_win" :key="data.player_name">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600" x-text="data.player_name"></span>
-                            <div class="flex items-center space-x-2">
-                                <div class="w-16 bg-gray-200 rounded-full h-2">
-                                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            <span class="text-sm" style="color: rgba(245,240,229,0.5);" x-text="data.player_name"></span>
+                            <div class="flex items-center gap-2">
+                                <div class="progress-track">
+                                    <div class="progress-fill"
                                          :style="`width: ${((game.cutoff - data.points_needed) / game.cutoff * 100)}%`">
                                     </div>
                                 </div>
-                                <span class="text-sm font-medium" x-text="data.points_needed"></span>
+                                <span class="text-xs font-medium" style="color: rgba(245,240,229,0.6); min-width: 2rem; text-align: right;" x-text="data.points_needed"></span>
                             </div>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
-                <div class="space-y-3">
-                    <button @click="refreshData" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors text-sm">
+            <!-- Actions -->
+            <div class="glass-card p-5 animate-in animate-in-delay-3">
+                <h3 class="text-sm font-semibold mb-4" style="font-family: 'Playfair Display', serif; color: var(--gold);">Actions</h3>
+                <div class="space-y-2">
+                    <button @click="refreshData" class="action-btn btn-ghost btn-sm">
                         Refresh
                     </button>
-                    <a href="{{ base_path }}/game/dashboard" class="block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm text-center">
+                    <a href="{{ base_path }}/game/dashboard" class="action-btn btn-gold btn-sm">
                         Dashboard
                     </a>
-                    <a href="{{ base_path }}/game/new" class="block bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors text-sm text-center">
+                    <a href="{{ base_path }}/game/new" class="action-btn btn-ghost btn-sm">
                         New Game
                     </a>
                     {% if is_creator and not game.is_completed and not game.is_cancelled %}
-                    <div x-data="{ confirmCancel: false }">
+                    <div x-data="{ confirmCancel: false }" class="mt-2">
                         <button
                             x-show="!confirmCancel"
                             @click="confirmCancel = true"
-                            class="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-medium py-2 px-4 rounded-md transition-colors text-sm"
+                            class="action-btn btn-danger"
                         >
                             Cancel Game
                         </button>
                         <div x-show="confirmCancel" x-transition class="space-y-2">
-                            <p class="text-sm text-red-700 font-medium text-center">Cancel this game?</p>
+                            <p class="text-xs font-medium text-center" style="color: #e74c3c;">Cancel this game?</p>
                             <div class="flex gap-2">
                                 <form method="POST" action="{{ base_path }}/game/{{ game.uuid }}/cancel" class="flex-1">
-                                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-md transition-colors text-sm">
+                                    <button type="submit" class="action-btn btn-danger w-full">
                                         Yes, Cancel
                                     </button>
                                 </form>
-                                <button @click="confirmCancel = false" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-3 rounded-md transition-colors text-sm">
+                                <button @click="confirmCancel = false" class="action-btn btn-ghost btn-sm flex-1">
                                     No
                                 </button>
                             </div>
@@ -243,6 +243,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Confetti container for game completion -->
+    <div id="confettiContainer" class="confetti-container" style="display: none;"></div>
 </div>
 
 <script>
@@ -260,12 +263,10 @@ function gameTracker(gameId) {
         scoreCutoff: {{ game.score_cutoff }},
 
         init() {
-            // Initialize scores object
             this.players.forEach(player => {
                 this.newScores[player.uuid] = '';
             });
 
-            // Add analytics data and elimination status to players
             this.players.forEach(player => {
                 const analytics = this.analytics.points_to_win.find(p => p.player_name === player.name);
                 if (analytics) {
@@ -273,20 +274,25 @@ function gameTracker(gameId) {
                 }
                 player.eliminated = player.total_score >= this.scoreCutoff;
             });
+
+            // Fire confetti if game just completed
+            if (this.gameCompleted) {
+                setTimeout(() => this.fireConfetti(), 500);
+            }
         },
-        
+
         get currentRound() {
             return this.rounds.length || 1;
         },
-        
+
         get sortedPlayers() {
             return [...this.players].sort((a, b) => a.total_score - b.total_score);
         },
-        
+
         get roundsHistory() {
             return this.rounds.slice().reverse();
         },
-        
+
         selectWinner(uuid) {
             this.roundWinner = this.roundWinner === uuid ? null : uuid;
         },
@@ -297,7 +303,6 @@ function gameTracker(gameId) {
                 return;
             }
 
-            // Build scores: 0 for winner, entered value for everyone else
             const scores = [];
             for (const player of this.players) {
                 if (player.uuid === this.roundWinner) {
@@ -311,30 +316,26 @@ function gameTracker(gameId) {
                 }
                 scores.push(parseInt(score));
             }
-            
+
             this.isSubmitting = true;
-            
+
             try {
                 const formData = new FormData();
                 scores.forEach(score => {
                     formData.append('score_entries', score.toString());
                 });
-                
+
                 const response = await fetch(window.BASE_PATH + `/game/${this.gameId}/round`, {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (response.ok) {
-                    // Refresh data
                     await this.refreshData();
-                    
-                    // Reset form
                     this.roundWinner = null;
                     this.players.forEach(player => {
                         this.newScores[player.uuid] = '';
                     });
-                    
                     this.hideError();
                 } else {
                     const error = await response.text();
@@ -346,27 +347,62 @@ function gameTracker(gameId) {
                 this.isSubmitting = false;
             }
         },
-        
+
         async refreshData() {
             try {
                 const response = await fetch(window.BASE_PATH + `/game/${this.gameId}`);
                 const html = await response.text();
-                // Simple page refresh for now
                 window.location.reload();
             } catch (error) {
                 console.error('Failed to refresh:', error);
             }
         },
-        
+
         showError(message) {
             const errorDiv = document.getElementById('roundErrorMessage');
             errorDiv.textContent = message;
             errorDiv.classList.remove('hidden');
         },
-        
+
         hideError() {
             const errorDiv = document.getElementById('roundErrorMessage');
             errorDiv.classList.add('hidden');
+        },
+
+        fireConfetti() {
+            const container = document.getElementById('confettiContainer');
+            container.style.display = 'block';
+            const colors = ['#d4a843', '#e8c76a', '#c0392b', '#27ae60', '#f5f0e5', '#a07c2e'];
+            const suits = ['\u2660', '\u2665', '\u2666', '\u2663'];
+
+            for (let i = 0; i < 60; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+                piece.style.animationDelay = Math.random() * 1.5 + 's';
+
+                if (Math.random() > 0.5) {
+                    piece.textContent = suits[Math.floor(Math.random() * suits.length)];
+                    piece.style.fontSize = (12 + Math.random() * 16) + 'px';
+                    piece.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.background = 'none';
+                    piece.style.width = 'auto';
+                    piece.style.height = 'auto';
+                } else {
+                    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    piece.style.width = (6 + Math.random() * 8) + 'px';
+                    piece.style.height = (6 + Math.random() * 8) + 'px';
+                }
+
+                container.appendChild(piece);
+            }
+
+            setTimeout(() => {
+                container.style.display = 'none';
+                container.innerHTML = '';
+            }, 5000);
         }
     };
 }

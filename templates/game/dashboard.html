@@ -3,47 +3,48 @@
 {% block title %}Dashboard - Rummy Score Tracker{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
+<div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8 animate-in">
         <div>
-            <h2 class="text-2xl font-bold text-gray-900">My Games</h2>
-            <p class="text-sm text-gray-600 mt-1">{{ user.email }}</p>
+            <h2 class="text-2xl font-bold" style="font-family: 'Playfair Display', serif; color: var(--cream);">My Games</h2>
+            <p class="text-sm mt-1" style="color: rgba(245,240,229,0.35);">{{ user.email }}</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ base_path }}/game/new" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors text-sm">
-                + New Game
+            <a href="{{ base_path }}/game/new" class="btn-gold btn-sm">
+                <span>+</span> New Game
             </a>
-            <a href="{{ base_path }}/auth/logout" class="text-sm text-gray-500 hover:text-gray-700">Logout</a>
+            <a href="{{ base_path }}/auth/logout" class="nav-link text-sm">Logout</a>
         </div>
     </div>
 
     <!-- Active Games -->
-    <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">Active Games</h3>
+    <div class="mb-10 animate-in animate-in-delay-1">
+        <div class="section-label">Active Games</div>
         {% if active_games %}
-        <div class="space-y-4">
+        <div class="space-y-3">
             {% for item in active_games %}
-            <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4">
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                            <span class="font-semibold text-gray-900">{{ item.game.score_cutoff }} Point Game</span>
-                            <span class="text-xs text-gray-500">Round {{ item.round_count }}</span>
+            <div class="game-card active">
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-2.5">
+                            <span class="status-dot active"></span>
+                            <span class="font-semibold" style="font-family: 'Playfair Display', serif; color: var(--cream);">{{ item.game.score_cutoff }} Point Game</span>
+                            <span class="text-xs" style="color: rgba(245,240,229,0.3);">Round {{ item.round_count }}</span>
                         </div>
-                        <div class="flex flex-wrap gap-2 mb-2">
+                        <div class="flex flex-wrap gap-1.5 mb-2.5">
                             {% for player in item.game.players|sort(attribute='total_score') %}
-                            <span class="inline-flex items-center gap-1 text-sm bg-gray-100 px-2 py-1 rounded">
-                                <span class="font-medium">{{ player.name }}</span>
-                                <span class="text-gray-500">({{ player.total_score }})</span>
+                            <span class="player-tag">
+                                <span class="name">{{ player.name }}</span>
+                                <span class="score">({{ player.total_score }})</span>
                             </span>
                             {% endfor %}
                         </div>
-                        <div class="text-sm text-gray-500">
+                        <div class="text-xs" style="color: rgba(245,240,229,0.25);">
                             Started {{ item.game.created_at.strftime('%b %d, %Y at %-I:%M %p') if item.game.created_at is not none else '' }}
                         </div>
                     </div>
-                    <a href="{{ base_path }}/game/{{ item.game.uuid }}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors whitespace-nowrap ml-4">
+                    <a href="{{ base_path }}/game/{{ item.game.uuid }}" class="btn-gold btn-sm whitespace-nowrap flex-shrink-0">
                         Continue
                     </a>
                 </div>
@@ -51,51 +52,52 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="bg-white rounded-lg shadow-md border border-gray-200 p-8 text-center text-gray-500">
-            No active games. Start a new one!
+        <div class="glass-card empty-state">
+            <div class="empty-icon">&#9824;</div>
+            <p>No active games. Start a new one!</p>
         </div>
         {% endif %}
     </div>
 
     <!-- Game History -->
-    <div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">Game History</h3>
+    <div class="animate-in animate-in-delay-2">
+        <div class="section-label">Game History</div>
         {% if historical_games %}
-        <div class="space-y-4">
+        <div class="space-y-3">
             {% for item in historical_games %}
-            <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4 opacity-80">
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-2">
+            <div class="game-card" style="opacity: 0.7;">
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-2.5 flex-wrap">
                             {% if item.game.is_cancelled %}
-                            <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
-                            <span class="font-semibold text-gray-900">{{ item.game.score_cutoff }} Point Game</span>
-                            <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Cancelled</span>
+                            <span class="status-dot cancelled"></span>
+                            <span class="font-semibold" style="font-family: 'Playfair Display', serif; color: var(--cream);">{{ item.game.score_cutoff }} Point Game</span>
+                            <span class="badge badge-cancelled">Cancelled</span>
                             {% else %}
-                            <span class="inline-block w-2 h-2 rounded-full bg-gray-400"></span>
-                            <span class="font-semibold text-gray-900">{{ item.game.score_cutoff }} Point Game</span>
-                            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Completed</span>
+                            <span class="status-dot completed"></span>
+                            <span class="font-semibold" style="font-family: 'Playfair Display', serif; color: var(--cream);">{{ item.game.score_cutoff }} Point Game</span>
+                            <span class="badge badge-completed">Completed</span>
                             {% endif %}
-                            <span class="text-xs text-gray-500">{{ item.round_count }} rounds</span>
+                            <span class="text-xs" style="color: rgba(245,240,229,0.3);">{{ item.round_count }} rounds</span>
                         </div>
                         {% if item.game.is_completed and item.winner_name %}
-                        <div class="text-sm text-green-700 font-medium mb-1">
+                        <div class="text-sm font-medium mb-1.5" style="color: var(--gold);">
                             Winner: {{ item.winner_name }}
                         </div>
                         {% endif %}
-                        <div class="flex flex-wrap gap-2 mb-2">
+                        <div class="flex flex-wrap gap-1.5 mb-2.5">
                             {% for player in item.game.players|sort(attribute='total_score') %}
-                            <span class="inline-flex items-center gap-1 text-sm bg-gray-100 px-2 py-1 rounded">
-                                <span class="font-medium">{{ player.name }}</span>
-                                <span class="text-gray-500">({{ player.total_score }})</span>
+                            <span class="player-tag">
+                                <span class="name">{{ player.name }}</span>
+                                <span class="score">({{ player.total_score }})</span>
                             </span>
                             {% endfor %}
                         </div>
-                        <div class="text-sm text-gray-500">
+                        <div class="text-xs" style="color: rgba(245,240,229,0.25);">
                             {{ item.game.created_at.strftime('%b %d, %Y at %-I:%M %p') if item.game.created_at is not none else '' }}
                         </div>
                     </div>
-                    <a href="{{ base_path }}/game/{{ item.game.uuid }}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors whitespace-nowrap ml-4">
+                    <a href="{{ base_path }}/game/{{ item.game.uuid }}" class="btn-ghost btn-sm whitespace-nowrap flex-shrink-0">
                         View
                     </a>
                 </div>
@@ -103,8 +105,9 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="bg-white rounded-lg shadow-md border border-gray-200 p-8 text-center text-gray-500">
-            No completed or cancelled games yet.
+        <div class="glass-card empty-state">
+            <div class="empty-icon">&#9830;</div>
+            <p>No completed or cancelled games yet.</p>
         </div>
         {% endif %}
     </div>
